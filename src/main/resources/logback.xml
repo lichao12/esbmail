@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 定义 每隔10秒中扫描该文件 -->
+<configuration scan="true" scanPeriod="10 seconds" debug="false">
+<include resource="org/springframework/boot/logging/logback/base.xml"/>
+<jmxConfigurator/>
+<!--定义日志输出目录-->
+<property name="LOG_HOME" value="data/"/>
+
+
+<!-- 控制台输出 -->
+<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+</appender>
+  
+  
+<!-- 文件输出 -->
+<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	    <FileNamePattern>${LOG_HOME}/esbmail_${HOSTNAME}_%d{yyyy-MM-dd}.log</FileNamePattern>
+	</rollingPolicy>
+	<encoder>
+		<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+	</encoder>
+</appender>
+<!-- ELK appender -->
+<appender name="ELKAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/esbmail_info_${HOSTNAME}_%d{yyyy-MM-dd}.log</FileNamePattern>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+        <providers>
+        <pattern>
+            <pattern>
+            {"service_id": "esbmail", "log_time": "%date{\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\"}", "thread": "%thread", "level": "%level",  "logger": "%logger", "msg": "%message", "stack_trace": "%exception"}
+            </pattern>
+        </pattern>
+        </providers>
+    </encoder>
+</appender>
+<appender name="accesslog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/esbmail_accesslog_${HOSTNAME}_%d{yyyy-MM-dd}.log</FileNamePattern>
+    </rollingPolicy>
+    <encoder>
+        <pattern>%msg%n</pattern>
+    </encoder>
+</appender>
+<logger name="com.jy.filter.accesslog" additivity="false" >
+        <level value="INFO" />
+        <appender-ref ref="accesslog" />
+</logger>
+<root level="INFO">
+  	<appender-ref ref="console" />
+    <appender-ref ref="ELKAppender" />
+ 		<appender-ref ref="file" />
+</root>
+
+</configuration>
